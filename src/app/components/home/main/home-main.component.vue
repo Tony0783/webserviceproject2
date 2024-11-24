@@ -225,7 +225,7 @@ export default {
 
 .movie-card p {
   font-size: 0.75rem;
-  margin-top: 5px;
+  margin-top: 7px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
