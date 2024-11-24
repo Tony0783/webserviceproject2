@@ -22,9 +22,11 @@
     <div v-else class="loading-banner">로딩 중...</div>
 
     <!-- MovieRow 컴포넌트 -->
-    <MovieRow title="인기 영화" :fetchUrl="popularMoviesUrl" />
-    <MovieRow title="최신 영화" :fetchUrl="newReleasesUrl" />
-    <MovieRow title="액션 영화" :fetchUrl="actionMoviesUrl" />
+    <div class="movie-rows-container">
+      <MovieRow title="인기 영화" :fetchUrl="popularMoviesUrl" />
+      <MovieRow title="최신 영화" :fetchUrl="newReleasesUrl" />
+      <MovieRow title="액션 영화" :fetchUrl="actionMoviesUrl" />
+    </div>
   </div>
 </template>
 
@@ -95,55 +97,59 @@ export default {
   font-family: 'Roboto', sans-serif;
   min-height: 100vh;
   padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .banner {
   position: relative;
-  height: 80vh;
+  width: 100%;
+  height: 60vh;
   color: white;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin-bottom: 50px;
-  padding: 0 5%;
+  margin-bottom: 30px;
+  padding: 0 4%;
 }
 
 .banner-content {
   position: absolute;
   z-index: 10;
-  padding: 20px;
-  max-width: 35%;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 8px;
+  padding: 15px;
+  max-width: 30%;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
 }
 
 .banner-content h1 {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 15px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .banner-content p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 25px;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .banner-buttons {
   display: flex;
-  gap: 15px;
+  gap: 10px;
 }
 
 .play-button {
   background-color: #e50914;
   border: none;
   color: white;
-  padding: 10px 25px;
-  font-size: 1rem;
+  padding: 8px 20px;
+  font-size: 0.9rem;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 4px;
   transition: background-color 0.3s;
 }
 
@@ -155,10 +161,10 @@ export default {
   background-color: rgba(51, 51, 51, 0.8);
   border: none;
   color: white;
-  padding: 10px 25px;
-  font-size: 1rem;
+  padding: 8px 20px;
+  font-size: 0.9rem;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 4px;
   transition: background-color 0.3s;
 }
 
@@ -175,43 +181,51 @@ export default {
   filter: brightness(0.4);
 }
 
+.movie-rows-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
 .movie-sliders {
-  padding: 20px 5%;
+  padding: 15px 4%;
 }
 
 .movie-sliders h2 {
-  font-size: 1.8rem;
-  margin-bottom: 20px;
+  font-size: 1.6rem;
+  margin-bottom: 15px;
 }
 
 .movie-row {
   display: flex;
-  gap: 15px;
-  overflow-x: auto;
+  flex-direction: column;
+  gap: 20px;
+  overflow-x: hidden;
   scroll-behavior: smooth;
   padding-bottom: 10px;
 }
 
 .movie-card {
   flex: 0 0 auto;
-  width: 180px;
+  width: 100%;
   text-align: center;
   color: white;
   transition: transform 0.3s;
 }
 
 .movie-card:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .movie-card img {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .movie-card p {
-  font-size: 1rem;
-  margin-top: 10px;
+  font-size: 0.75rem;
+  margin-top: 5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -220,7 +234,7 @@ export default {
 /* 로딩 메시지 스타일 */
 .loading-banner {
   text-align: center;
-  font-size: 22px;
+  font-size: 18px;
   color: #888;
   margin: 30px 0;
 }
