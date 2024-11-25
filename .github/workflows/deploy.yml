@@ -3,24 +3,29 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # main 브랜치가 업데이트될 때마다 배포 실행
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Install dependencies
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
         run: npm install
 
-      - name: Build the project
+      - name: Build Project
         run: npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          personal_token: ${{ secrets.PERSONAL_TOKEN }} # Personal Access Token 사용
+          github_token: ${{ secrets.GH_TOKEN }}  # 여기서 방금 추가한 Secret을 사용하세요
           publish_dir: ./dist
