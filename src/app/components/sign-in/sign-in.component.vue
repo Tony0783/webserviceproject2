@@ -1,7 +1,7 @@
 <template>
   <div class="sign-in">
     <div class="bg-image"></div>
-    <div class="container">
+    <div class="container" v-if="!isLoggedIn">
       <div id="phone">
         <div id="content-wrapper">
           <!-- 로그인 카드 -->
@@ -77,18 +77,24 @@
         </div>
       </div>
     </div>
+    <!-- 로그아웃 버튼 표시 (로그인 상태일 경우) -->
+    <div v-else class="logout-container">
+      <h2>Welcome, {{ email }}</h2>
+      <button @click="handleLogout">Logout</button>
+    </div>
   </div>
 </template>
-
 <script>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from '../../store/auth'; // auth store import
 import AuthService from "../../util/auth/auth.service";
 
 export default {
   name: "SignIn",
   setup() {
     const router = useRouter();
+    const authStore = useAuthStore(); // Pinia store 사용
     const isLoginVisible = ref(true);
     const email = ref("");
     const password = ref("");
@@ -112,13 +118,11 @@ export default {
     // 로그인 처리 함수
     const handleLogin = async () => {
       try {
-        // 비밀번호를 API 키로 사용 (간단한 예로 활용)
         const response = await AuthService.tryLogin(email.value, password.value);
         if (response) {
-          localStorage.setItem("TMDb-Key", password.value); // 로그인 성공 시 비밀번호를 API 키로 저장
-          console.log("로그인 성공, 저장된 API 키:", password.value); // 디버깅용 로그
+          authStore.login(password.value); // Pinia store를 사용해 로그인 상태 변경
           alert("로그인 성공!");
-          router.push("/main"); // 메인 화면으로 이동
+          router.push("/main");
         } else {
           throw new Error("로그인에 실패했습니다.");
         }
@@ -134,7 +138,7 @@ export default {
         const response = await AuthService.tryRegister(registerEmail.value, registerPassword.value);
         if (response) {
           alert("회원가입 성공! 로그인 화면으로 이동합니다.");
-          isLoginVisible.value = true; // 회원가입 후 로그인 화면으로 전환
+          isLoginVisible.value = true;
         } else {
           throw new Error("회원가입에 실패했습니다.");
         }
@@ -142,6 +146,13 @@ export default {
         alert("회원가입 실패: " + error.message);
         console.error(error);
       }
+    };
+
+    const handleLogout = () => {
+      authStore.logout(); // Pinia store를 사용해 로그아웃 상태 변경
+      email.value = "";
+      password.value = "";
+      alert("로그아웃 성공!");
     };
 
     const toggleCard = () => {
@@ -169,14 +180,17 @@ export default {
       isPasswordFocused,
       isLoginFormValid,
       isRegisterFormValid,
+      isLoggedIn: authStore.isLoggedIn, // Pinia 상태 사용
       handleLogin,
       handleRegister,
+      handleLogout,
       toggleCard,
       focusInput,
       blurInput,
     };
   },
 };
+
 </script>
 
 <style scoped>

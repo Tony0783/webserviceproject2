@@ -17,9 +17,13 @@
         </nav>
       </div>
       <div class="header-right">
-        <button class="icon-button" @click="removeKey">
-          <font-awesome-icon :icon="['fas', 'user']"></font-awesome-icon>
+        <!-- 로그인 여부에 따라 Sign In 또는 Logout 버튼 렌더링 -->
+        <button v-if="isLoggedIn" class="icon-button" @click="handleLogout">
+          <font-awesome-icon :icon="['fas', 'user']"></font-awesome-icon> Logout
         </button>
+        <router-link v-else to="/sign-in" class="icon-button">
+          <font-awesome-icon :icon="['fas', 'user']"></font-awesome-icon> Sign In
+        </router-link>
         <button class="icon-button mobile-menu-button" @click="toggleMobileMenu">
           <font-awesome-icon :icon="['fas', 'bars']"></font-awesome-icon>
         </button>
@@ -46,6 +50,7 @@
 <script>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../../store/auth'; // auth store import
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faSearch, faUser, faTicket, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -59,14 +64,15 @@ export default {
     const isScrolled = ref(false);
     const isMobileMenuOpen = ref(false);
     const router = useRouter();
+    const authStore = useAuthStore(); // Pinia store 사용
 
     const handleScroll = () => {
       isScrolled.value = window.scrollY > 50;
     };
 
-    const removeKey = () => {
-      localStorage.removeItem('TMDb-Key');
-      router.push('/sign-in'); // 정확한 경로로 설정
+    const handleLogout = () => {
+      authStore.logout(); // 로그아웃 액션 호출
+      router.push('/sign-in'); // 로그인 페이지로 이동
     };
 
     const toggleMobileMenu = () => {
@@ -84,10 +90,11 @@ export default {
     return {
       isScrolled,
       isMobileMenuOpen,
-      removeKey,
-      toggleMobileMenu
+      isLoggedIn: authStore.isLoggedIn, // Pinia 상태 사용
+      handleLogout,
+      toggleMobileMenu,
     };
-  }
+  },
 };
 </script>
 
