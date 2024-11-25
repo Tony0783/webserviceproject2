@@ -1,5 +1,5 @@
 <template>
-  <div class="container-search">
+  <div class="container-search" v-if="isLoggedIn">
     <div class="container-search-bar">
       <!-- MovieSearch 컴포넌트 사용 -->
       <MovieSearch @changeOptions="changeOptions" />
@@ -17,7 +17,8 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import MovieSearch from '../../views/search/movie-search.component.vue';
 import MovieInfiniteScroll from '../../views/views/movie-infinite-scroll.component.vue';
 
@@ -25,11 +26,26 @@ export default {
   name: 'HomeSearch',
   components: {
     MovieSearch,
-    MovieInfiniteScroll
+    MovieInfiniteScroll,
   },
   setup() {
-    // API 키를 하드코딩
-    const apiKey = ref('b4dd7d0ce31fa1fb024fd2f2e48e4135');
+    const router = useRouter();
+
+    // 로그인 여부 확인
+    const isLoggedIn = ref(false);
+
+    // API 키 로컬 스토리지에서 가져오기
+    const apiKey = ref(localStorage.getItem('TMDb-Key'));
+
+    // API 키가 없는 경우 로그인 페이지로 이동
+    onMounted(() => {
+      if (!apiKey.value) {
+        router.push('/signin'); // 로그인 페이지로 리다이렉트
+      } else {
+        isLoggedIn.value = true; // 로그인 되어 있는 경우에만 페이지 접근 허용
+      }
+    });
+
     const genreId = ref('28');
     const ageId = ref(-1);
     const sortId = ref('all');
@@ -41,13 +57,13 @@ export default {
       'Adventure': 12,
       'Comedy': 35,
       'Crime': 80,
-      'Family': 10751
+      'Family': 10751,
     };
 
     const sortingCode = {
       '언어 (전체)': 'all',
       '영어': 'en',
-      '한국어': 'ko'
+      '한국어': 'ko',
     };
 
     const ageCode = {
@@ -58,7 +74,7 @@ export default {
       '6~7': 6,
       '5~6': 5,
       '4~5': 4,
-      '4점 이하': -2
+      '4점 이하': -2,
     };
 
     // 옵션 변경 핸들러
@@ -69,13 +85,14 @@ export default {
     };
 
     return {
+      isLoggedIn,
       apiKey,
       genreId,
       ageId,
       sortId,
-      changeOptions
+      changeOptions,
     };
-  }
+  },
 };
 </script>
 

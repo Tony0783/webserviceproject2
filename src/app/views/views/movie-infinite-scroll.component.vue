@@ -1,5 +1,5 @@
 <template>
-  <div> <!-- 최상위 루트 요소 -->
+  <div>
     <div class="movie-grid" ref="gridContainer">
       <div :class="['grid-container', currentView]">
         <div
@@ -58,7 +58,7 @@ export default {
     apiKey: String,
     sortingOrder: { type: String, default: 'popularity.desc' },
     voteAverage: { type: Number, default: -1 },
-    language: { type: String, default: 'all' }
+    language: { type: String, default: 'ko-KR' }
   },
   setup(props) {
     const movies = ref([]);
@@ -96,11 +96,13 @@ export default {
           api_key: props.apiKey,
           language: props.language !== 'all' ? props.language : 'ko-KR',
           page: currentPage.value,
-          with_genres: props.genreCode !== '0' ? props.genreCode : undefined,
+          with_genres: props.genreCode && props.genreCode !== '0' ? props.genreCode : undefined,
           sort_by: props.sortingOrder,
           'vote_average.gte': props.voteAverage > 0 ? props.voteAverage : undefined,
         };
 
+        console.log("Fetching Movies with Params:", params); // API 요청의 매개변수 출력 (디버깅용)
+        
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', { params });
         const newMovies = response.data.results;
 

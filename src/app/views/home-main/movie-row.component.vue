@@ -52,7 +52,7 @@
 <script>
 import { ref, onMounted, computed, watch } from "vue";
 import axios from "axios";
-import { toggleWishlist, isInWishlist } from "../../util/movie/wishlist"; // 경로를 실제 위치에 맞게 수정
+import { toggleWishlist, isInWishlist } from "../../util/movie/wishlist"; // 실제 파일 위치에 맞게 수정 필요
 
 export default {
   name: "MovieRow",
@@ -75,13 +75,22 @@ export default {
     const isScrolling = ref(false);
     const touchStartX = ref(0);
     const touchEndX = ref(0);
-
     const maxScroll = ref(0); // 최대 스크롤 값
+    const cancelTokenSource = ref(null); // Axios 요청 취소 토큰
 
     // 영화 데이터를 API에서 가져오기
     const fetchMovies = async () => {
+      // 이전 요청 취소
+      if (cancelTokenSource.value) {
+        cancelTokenSource.value.cancel("Request canceled by new request.");
+      }
+      cancelTokenSource.value = axios.CancelToken.source();
+
       try {
-        const response = await axios.get(props.fetchUrl);
+        movies.value = []; // 데이터를 가져오기 전에 초기화
+        const response = await axios.get(props.fetchUrl, {
+          cancelToken: cancelTokenSource.value.token,
+        });
         if (response.data && Array.isArray(response.data.results)) {
           movies.value = response.data.results;
         } else {
@@ -89,8 +98,12 @@ export default {
           movies.value = [];
         }
       } catch (error) {
-        console.error("영화 데이터를 가져오는 중 오류 발생:", error.message || error);
-        movies.value = [];
+        if (axios.isCancel(error)) {
+          console.log("Previous request canceled:", error.message);
+        } else {
+          console.error("영화 데이터를 가져오는 중 오류 발생:", error.message || error);
+          movies.value = [];
+        }
       }
     };
 
@@ -162,7 +175,13 @@ export default {
     });
 
     // fetchUrl 변경 시 영화 데이터 다시 로드
-    watch(() => props.fetchUrl, fetchMovies);
+    watch(
+      () => props.fetchUrl,
+      async () => {
+        await fetchMovies();
+      },
+      { immediate: true }
+    );
 
     return {
       movies,
@@ -189,5 +208,88 @@ export default {
 </script>
 
 <style scoped>
-/* 스타일은 동일 */
+.movie-row {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.slider-button {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  font-size: 20px;
+  transition: opacity 0.3s;
+  border-radius: 50%;
+}
+
+.slider-button.left {
+  left: 10px;
+}
+
+.slider-button.right {
+  right: 10px;
+}
+
+.slider-window {
+  overflow: hidden;
+  flex: 1;
+}
+
+.movie-slider {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.movie-card {
+  min-width: 150px;
+  max-width: 150px;
+  margin-right: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.movie-card:hover {
+  transform: scale(1.05);
+}
+
+.movie-title {
+  text-align: center;
+  margin-top: 10px;
+  color: #fff;
+  font-size: 14px;
+}
+
+img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.wishlist-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  color: #f39c12;
+}
+
+.error-message {
+  color: red;
+  text-align: center;
+}
 </style>

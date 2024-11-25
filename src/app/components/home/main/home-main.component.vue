@@ -1,57 +1,49 @@
 <template>
   <div class="home">
-    <!-- 배너 섹션: featuredMovie가 로드되었을 때만 렌더링 -->
-    <div v-if="featuredMovie" class="banner">
-      <div class="banner-content">
-        <h1>{{ featuredMovie?.title || "영화 제목" }}</h1>
-        <p>{{ featuredMovie?.overview || "영화 줄거리가 여기에 표시됩니다." }}</p>
-        <div class="banner-buttons">
-          <button class="play-button">재생</button>
-          <button class="info-button">상세 정보</button>
-        </div>
-      </div>
-      <div
-        class="banner-image"
-        :style="{
-          backgroundImage: featuredMovie?.backdrop_path
-            ? `url(https://image.tmdb.org/t/p/original${featuredMovie.backdrop_path})`
-            : 'none',
-        }"
-      ></div>
-    </div>
+    <!-- Banner 컴포넌트: featuredMovie가 로드되었을 때만 렌더링 -->
+    <Banner v-if="featuredMovie" :movie="featuredMovie" />
     <div v-else class="loading-banner">로딩 중...</div>
 
-    <!-- MovieRow 컴포넌트 -->
-    <div class="movie-rows-container">
-      <MovieRow title="인기 영화" :fetchUrl="popularMoviesUrl" />
-      <MovieRow title="최신 영화" :fetchUrl="newReleasesUrl" />
-      <MovieRow title="액션 영화" :fetchUrl="actionMoviesUrl" />
-    </div>
+    <!-- MovieRow 컴포넌트에 key 속성 추가 -->
+    <MovieRow key="popular" title="인기 영화" :fetchUrl="getUniqueUrl(popularMoviesUrl)" />
+    <MovieRow key="romanceMovies" title="로맨스 영화" :fetchUrl="getUniqueUrl(romanceMoviesUrl)" />
+    <MovieRow key="actionMovies" title="액션 영화" :fetchUrl="getUniqueUrl(actionMoviesUrl)" />
   </div>
 </template>
 
 <script>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import Banner from '../../../views/home-main/banner.component.vue';
 import MovieRow from '../../../views/home-main/movie-row.component.vue';
 
 export default {
   name: 'HomeMain',
   components: {
+    Banner,
     MovieRow
   },
   setup() {
-    const apiKey = 'b4dd7d0ce31fa1fb024fd2f2e48e4135';
+    // 로컬 스토리지에서 API 키 가져오기
+    const apiKey = localStorage.getItem('TMDb-Key'); // 'TMDb-Key'는 회원가입 시 저장한 비밀번호(API 키)를 가져옴
+    if (!apiKey) {
+      console.error('API 키가 없습니다. 로그인 후 다시 시도해 주세요.');
+      return {};
+    }
+
     const featuredMovie = ref(null);
 
     // URL 설정
     const popularMoviesUrl = ref(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=ko-KR`);
-    const newReleasesUrl = ref(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=ko-KR`);
+        const romanceMoviesUrl = ref(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=10749&language=ko-KR`);
     const actionMoviesUrl = ref(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=28&language=ko-KR`);
+
+    // 고유한 URL을 생성하는 함수 (캐시 회피)
+    const getUniqueUrl = (url) => `${url}&t=${new Date().getTime()}`;
 
     // 인기 영화 데이터 로드
     const loadFeaturedMovie = async () => {
       try {
-        const response = await fetch(popularMoviesUrl.value);
+        const response = await fetch(getUniqueUrl(popularMoviesUrl.value));
         const data = await response.json();
         featuredMovie.value = data.results[0]; // 첫 번째 영화 설정
       } catch (error) {
@@ -83,8 +75,9 @@ export default {
     return {
       featuredMovie,
       popularMoviesUrl,
-      newReleasesUrl,
-      actionMoviesUrl
+      romanceMoviesUrl,
+      actionMoviesUrl,
+      getUniqueUrl
     };
   }
 };
@@ -97,15 +90,11 @@ export default {
   font-family: 'Roboto', sans-serif;
   min-height: 100vh;
   padding-bottom: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .banner {
   position: relative;
-  width: 100%;
-  height: 60vh;
+  height: 60vh; /* 배너 높이를 줄였습니다. */
   color: white;
   display: flex;
   justify-content: flex-start;
@@ -181,13 +170,6 @@ export default {
   filter: brightness(0.4);
 }
 
-.movie-rows-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-}
-
 .movie-sliders {
   padding: 15px 4%;
 }
@@ -199,16 +181,15 @@ export default {
 
 .movie-row {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-x: hidden;
+  gap: 8px;
+  overflow-x: auto;
   scroll-behavior: smooth;
   padding-bottom: 10px;
 }
 
 .movie-card {
   flex: 0 0 auto;
-  width: 100%;
+  width: 100px; /* 영화 카드의 가로 크기를 줄였습니다. */
   text-align: center;
   color: white;
   transition: transform 0.3s;
@@ -225,7 +206,7 @@ export default {
 
 .movie-card p {
   font-size: 0.75rem;
-  margin-top: 7px;
+  margin-top: 5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

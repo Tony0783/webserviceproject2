@@ -109,16 +109,18 @@ export default {
       );
     });
 
+    // 로그인 처리 함수
     const handleLogin = async () => {
       try {
+        // 비밀번호를 API 키로 사용 (간단한 예로 활용)
         const response = await AuthService.tryLogin(email.value, password.value);
-        if (response && response.apiKey) {
-          localStorage.setItem("TMDb-Key", response.apiKey); // API 키 저장
-          console.log("로그인 성공, 저장된 API 키:", response.apiKey); // 디버깅용 로그
+        if (response) {
+          localStorage.setItem("TMDb-Key", password.value); // 로그인 성공 시 비밀번호를 API 키로 저장
+          console.log("로그인 성공, 저장된 API 키:", password.value); // 디버깅용 로그
           alert("로그인 성공!");
           router.push("/main"); // 메인 화면으로 이동
         } else {
-          throw new Error("API 키가 반환되지 않았습니다.");
+          throw new Error("로그인에 실패했습니다.");
         }
       } catch (error) {
         alert("로그인 실패: " + error.message);
@@ -126,12 +128,16 @@ export default {
       }
     };
 
-
+    // 회원가입 처리 함수
     const handleRegister = async () => {
       try {
         const response = await AuthService.tryRegister(registerEmail.value, registerPassword.value);
-        alert(response);
-        isLoginVisible.value = true; // 회원가입 후 로그인 화면으로 전환
+        if (response) {
+          alert("회원가입 성공! 로그인 화면으로 이동합니다.");
+          isLoginVisible.value = true; // 회원가입 후 로그인 화면으로 전환
+        } else {
+          throw new Error("회원가입에 실패했습니다.");
+        }
       } catch (error) {
         alert("회원가입 실패: " + error.message);
         console.error(error);
@@ -167,7 +173,7 @@ export default {
       handleRegister,
       toggleCard,
       focusInput,
-      blurInput, // focusInput과 blurInput 반환
+      blurInput,
     };
   },
 };

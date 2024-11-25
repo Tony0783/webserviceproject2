@@ -29,8 +29,12 @@ export default {
   setup() {
     const currentView = ref("grid");
 
-    // 하드코딩된 API 키
-    const apiKey = "b4dd7d0ce31fa1fb024fd2f2e48e4135";
+    // 로컬 스토리지에서 API 키 가져오기
+    const apiKey = localStorage.getItem('TMDb-Key'); // 'TMDb-Key'는 회원가입 시 저장한 비밀번호(API 키)를 가져옴
+    if (!apiKey) {
+      console.error('API 키가 없습니다. 로그인 후 다시 시도해 주세요.');
+      return;
+    }
 
     // API URL 생성
     const fetchURL = getURL4PopularMovies(apiKey);
