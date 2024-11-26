@@ -58,7 +58,7 @@ export default {
     apiKey: String,
     sortingOrder: { type: String, default: 'popularity.desc' },
     voteAverage: { type: Number, default: -1 },
-    language: { type: String, default: 'ko-KR' }
+    language: { type: String, default: 'en' } // 기본 언어를 영어로 설정
   },
   setup(props) {
     const movies = ref([]);
@@ -94,11 +94,11 @@ export default {
       try {
         const params = {
           api_key: props.apiKey,
-          language: props.language !== 'all' ? props.language : 'ko-KR',
+          language: props.language && props.language !== 'all' ? props.language : 'en', // 기본 언어를 영어로 설정
           page: currentPage.value,
           with_genres: props.genreCode && props.genreCode !== '0' ? props.genreCode : undefined,
-          sort_by: props.sortingOrder,
-          'vote_average.gte': props.voteAverage > 0 ? props.voteAverage : undefined,
+          sort_by: props.sortingOrder ?? 'popularity.desc', // 기본 정렬 설정
+          'vote_average.gte': props.voteAverage > 0 ? props.voteAverage : undefined, // 평점이 양수인 경우만 전달
         };
 
         console.log("Fetching Movies with Params:", params); // API 요청의 매개변수 출력 (디버깅용)

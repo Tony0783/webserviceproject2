@@ -68,6 +68,20 @@
         selectedOptions.value = { ...selectedOptions.value, [key]: option };
         activeDropdown.value = null;
         emit('changeOptions', selectedOptions.value);
+  
+        // 검색어 기록 저장
+        if (key === 'originalLanguage') {
+          saveSearchHistory(option);
+        }
+      };
+  
+      // 검색어 기록을 LocalStorage에 저장
+      const saveSearchHistory = (query) => {
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+        if (!searchHistory.includes(query)) {
+          searchHistory.push(query);
+        }
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
       };
   
       const clearOptions = () => {
@@ -86,6 +100,7 @@
     },
   };
   </script>
+  
   
   <style scoped>
   /* 기존 CSS 그대로 사용 */

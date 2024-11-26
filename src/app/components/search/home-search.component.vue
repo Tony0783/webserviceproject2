@@ -10,14 +10,15 @@
         :apiKey="apiKey"
         :genreCode="genreId"
         :sortingOrder="sortId"
-        :voteEverage="ageId"
+        :voteAverage="voteAverage"
+        :language="language"
       />
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import MovieSearch from '../../views/search/movie-search.component.vue';
 import MovieInfiniteScroll from '../../views/views/movie-infinite-scroll.component.vue';
@@ -44,15 +45,33 @@ export default {
       } else {
         isLoggedIn.value = true; // 로그인 되어 있는 경우에만 페이지 접근 허용
       }
+
+      // 저장된 필터 옵션을 불러옴
+      const savedOptions = JSON.parse(localStorage.getItem('selectedOptions'));
+      if (savedOptions) {
+        genreId.value = savedOptions.genreId || '0';
+        ageId.value = savedOptions.ageId || -1;
+        sortId.value = savedOptions.sortId || 'all';
+      }
     });
 
-    const genreId = ref('28');
+    // 로그인 상태 변화를 감지하도록 watchEffect 사용
+    watchEffect(() => {
+      if (!localStorage.getItem('TMDb-Key')) {
+        isLoggedIn.value = false;
+        router.push('/signin');
+      } else {
+        isLoggedIn.value = true;
+      }
+    });
+
+    const genreId = ref('0');
     const ageId = ref(-1);
     const sortId = ref('all');
 
     // 각 코드 매핑 설정
     const genreCode = {
-      '장르 (전체)': 0,
+      '장르 (전체)': '0',
       'Action': 28,
       'Adventure': 12,
       'Comedy': 35,
@@ -61,7 +80,7 @@ export default {
     };
 
     const sortingCode = {
-      '언어 (전체)': 'all',
+      '정렬 (전체)': 'all',
       '영어': 'en',
       '한국어': 'ko',
     };
@@ -79,9 +98,19 @@ export default {
 
     // 옵션 변경 핸들러
     const changeOptions = (options) => {
-      genreId.value = `${genreCode[options.originalLanguage]}`;
-      ageId.value = ageCode[options.translationLanguage];
-      sortId.value = sortingCode[options.sorting];
+      genreId.value = genreCode[options.originalLanguage] || '0';
+      ageId.value = ageCode[options.translationLanguage] || -1;
+      sortId.value = sortingCode[options.sorting] || 'all';
+
+      // 변경된 옵션을 localStorage에 저장
+      localStorage.setItem(
+        'selectedOptions',
+        JSON.stringify({
+          genreId: genreId.value,
+          ageId: ageId.value,
+          sortId: sortId.value,
+        })
+      );
     };
 
     return {
