@@ -3,6 +3,18 @@
     <div class="banner-content">
       <h1>{{ movie.title }}</h1>
       <p>{{ movie.overview }}</p>
+      
+      <!-- 영화 평점, 개봉일, 장르 정보 추가 -->
+      <div v-if="movie.vote_average" class="movie-rating">
+        평점: {{ movie.vote_average }} / 10
+      </div>
+      <div v-if="movie.release_date" class="movie-release-date">
+        개봉일: {{ formattedReleaseDate }}
+      </div>
+      <div v-if="genres && genres.length > 0" class="movie-genres">
+        장르: {{ genres.join(', ') }}
+      </div>
+
       <button class="play-btn title-btn">재생</button>
       <button class="info-btn title-btn">상세 정보</button>
     </div>
@@ -24,6 +36,23 @@ export default {
         ? `https://image.tmdb.org/t/p/original${this.movie.backdrop_path}`
         : "";
     },
+    formattedReleaseDate() {
+      if (this.movie.release_date) {
+        const date = new Date(this.movie.release_date);
+        return date.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+      return null;
+    },
+    genres() {
+      if (this.movie.genres && this.movie.genres.length > 0) {
+        return this.movie.genres.map(genre => genre.name);
+      }
+      return [];
+    }
   },
 };
 </script>
@@ -59,6 +88,14 @@ export default {
   font-size: 1rem;
   max-width: 500px;
   margin-bottom: 1rem;
+}
+
+/* 추가된 영화 평점, 개봉일, 장르 스타일 */
+.movie-rating,
+.movie-release-date,
+.movie-genres {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
 .play-btn,
