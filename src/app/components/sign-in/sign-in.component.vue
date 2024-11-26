@@ -18,6 +18,7 @@
                   required
                 />
                 <label for="email">Username or Email</label>
+                <span class="focus-effect"></span>
               </div>
               <div class="input" :class="{ active: isPasswordFocused || password }">
                 <input
@@ -29,6 +30,7 @@
                   required
                 />
                 <label for="password">Password</label>
+                <span class="focus-effect"></span>
               </div>
               <button :disabled="!isLoginFormValid">Login</button>
             </form>
@@ -49,6 +51,7 @@
                   required
                 />
                 <label for="register-email">Email</label>
+                <span class="focus-effect"></span>
               </div>
               <div class="input">
                 <input
@@ -58,6 +61,7 @@
                   required
                 />
                 <label for="register-password">Password</label>
+                <span class="focus-effect"></span>
               </div>
               <div class="input">
                 <input
@@ -67,6 +71,7 @@
                   required
                 />
                 <label for="confirm-password">Confirm Password</label>
+                <span class="focus-effect"></span>
               </div>
               <button :disabled="!isRegisterFormValid">Register</button>
             </form>
@@ -232,7 +237,7 @@ a {
 }
 
 .container {
-  height: 100svh;
+  height: 100vh;
   width: 100svw;
   position: absolute;
   top: 0;
@@ -307,30 +312,29 @@ input {
 }
 
 h1 {
-  font-size:24px;
-  font-weight:800;
-  text-align:center;
-  margin-top:0;
-
-  color:#272727;
+  color: #00eaff;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 button {
   display:block;
-  border-radius:50px;
+  border-radius:25px;
   border:none;
   width:100%;
   background-color: #2069ff;
   color:#fff;
-  padding:17px;
+  padding:15px;
   text-transform:uppercase;
   letter-spacing:2px;
   box-shadow: 0px 10px 30px rgba(23,83,209,0.3);
   transition: all 0.2s ease;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 button:hover {
-  box-shadow: 0px 2px 10px rgba(23,83,209,0.4)
+  background-color: #008fb3;
 }
 
 .input {
@@ -346,7 +350,7 @@ button:hover {
 .input input {
   background-color: transparent;
   border: none;
-  border-bottom: 1px solid #9e9e9e;
+  border-bottom: 2px solid #9e9e9e;
   border-radius: 0;
   outline: none;
   height: 2.5rem;
@@ -367,11 +371,32 @@ button:hover {
   height: 100%;
   font-size: 1rem;
   cursor: text;
-  transition: transform .2s ease-out;
+  transition: all 0.3s ease;
   transform-origin: 0% 100%;
   text-align: initial;
   transform: translateY(12px);
   pointer-events: none;
+}
+.input input:focus + label,
+.input input:not(:placeholder-shown) + label {
+  transform: translateY(-20px);
+  color: #00eaff;
+}
+.focus-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: #00eaff;
+  transition: all 0.4s ease;
+}
+.input input:focus ~ .focus-effect {
+  width: 100%;
+}
+
+.input input:focus {
+  border-bottom: 2px solid #00eaff;
 }
 
 .label-active {
@@ -460,10 +485,10 @@ button:hover {
   width:100%;
   max-width: 800px;
   position:absolute;
-  background-color:white;
-  padding:27px 30px 46px 30px;
-  box-shadow: 0 5px 10px rgba(0,0,0,0.16);
-  transition: all 0.4s 0.1s ease;
+  background: #1c1c1c;
+  padding: 30px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+  transition: all 0.4s ease;
 
   top: 50%;
 
