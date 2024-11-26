@@ -1,17 +1,32 @@
 <template>
   <div class="container-search" v-if="isLoggedIn">
     <div class="container-search-bar">
-      <!-- MovieSearch 컴포넌트 사용 -->
-      <MovieSearch @changeOptions="changeOptions" />
+      <!-- 장르 필터 -->
+      <select v-model="selectedGenre" @change="applyFilters" class="filter-select">
+        <option value="0">장르 (전체)</option>
+        <option v-for="(code, name) in genreCode" :key="name" :value="code">
+          {{ name }}
+        </option>
+      </select>
+      
+      <!-- 평점 필터 -->
+      <select v-model="selectedVoteAverage" @change="applyFilters" class="filter-select">
+        <option value="">평점 (전체)</option>
+        <option v-for="score in voteAverages" :key="score" :value="score">
+          {{ score }} 이상
+        </option>
+      </select>
+
+      <!-- 초기화 버튼 -->
+      <button @click="resetFilters" class="reset-button">초기화</button>
     </div>
+    
     <div class="content-search">
       <!-- MovieInfiniteScroll 컴포넌트 사용 -->
       <MovieInfiniteScroll
         :apiKey="apiKey"
-        :genreCode="genreId"
-        :sortingOrder="sortId"
-        :voteAverage="voteAverage"
-        :language="language"
+        :genreCode="selectedGenre"
+        :voteAverage="selectedVoteAverage"
       />
     </div>
   </div>
@@ -20,13 +35,11 @@
 <script>
 import { ref, onMounted, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
-import MovieSearch from '../../views/search/movie-search.component.vue';
 import MovieInfiniteScroll from '../../views/views/movie-infinite-scroll.component.vue';
 
 export default {
   name: 'HomeSearch',
   components: {
-    MovieSearch,
     MovieInfiniteScroll,
   },
   setup() {
@@ -49,9 +62,8 @@ export default {
       // 저장된 필터 옵션을 불러옴
       const savedOptions = JSON.parse(localStorage.getItem('selectedOptions'));
       if (savedOptions) {
-        genreId.value = savedOptions.genreId || '0';
-        ageId.value = savedOptions.ageId || -1;
-        sortId.value = savedOptions.sortId || 'all';
+        selectedGenre.value = savedOptions.genreId || '0';
+        selectedVoteAverage.value = savedOptions.voteAverage || '';
       }
     });
 
@@ -65,61 +77,54 @@ export default {
       }
     });
 
-    const genreId = ref('0');
-    const ageId = ref(-1);
-    const sortId = ref('all');
+    const selectedGenre = ref('0');
+    const selectedVoteAverage = ref('');
 
-    // 각 코드 매핑 설정
+    // 장르 코드 매핑
     const genreCode = {
-      '장르 (전체)': '0',
       'Action': 28,
       'Adventure': 12,
       'Comedy': 35,
       'Crime': 80,
+      'Drama': 18,
       'Family': 10751,
+      'Fantasy': 14,
+      'Horror': 27,
+      'Romance': 10749,
+      'Science Fiction': 878,
+      'Thriller': 53,
     };
 
-    const sortingCode = {
-      '정렬 (전체)': 'all',
-      '영어': 'en',
-      '한국어': 'ko',
-    };
+    // 평점 리스트 (5점부터 9점까지)
+    const voteAverages = [5, 6, 7, 8, 9];
 
-    const ageCode = {
-      '평점 (전체)': -1,
-      '9~10': 9,
-      '8~9': 8,
-      '7~8': 7,
-      '6~7': 6,
-      '5~6': 5,
-      '4~5': 4,
-      '4점 이하': -2,
-    };
-
-    // 옵션 변경 핸들러
-    const changeOptions = (options) => {
-      genreId.value = genreCode[options.originalLanguage] || '0';
-      ageId.value = ageCode[options.translationLanguage] || -1;
-      sortId.value = sortingCode[options.sorting] || 'all';
-
-      // 변경된 옵션을 localStorage에 저장
+    // 필터 적용 함수
+    const applyFilters = () => {
       localStorage.setItem(
         'selectedOptions',
         JSON.stringify({
-          genreId: genreId.value,
-          ageId: ageId.value,
-          sortId: sortId.value,
+          genreId: selectedGenre.value,
+          voteAverage: selectedVoteAverage.value,
         })
       );
+    };
+
+    // 초기화 버튼 함수
+    const resetFilters = () => {
+      selectedGenre.value = '0';
+      selectedVoteAverage.value = '';
+      applyFilters();
     };
 
     return {
       isLoggedIn,
       apiKey,
-      genreId,
-      ageId,
-      sortId,
-      changeOptions,
+      selectedGenre,
+      selectedVoteAverage,
+      genreCode,
+      voteAverages,
+      applyFilters,
+      resetFilters,
     };
   },
 };
@@ -138,11 +143,54 @@ export default {
   width: 100%;
   position: relative;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  gap: 15px;
   margin-top: 10px;
+  background-color: #222;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.filter-select {
+  padding: 10px 15px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.filter-select:focus {
+  outline: none;
+  background: #444;
+  transform: scale(1.05);
+}
+
+.reset-button {
+  padding: 10px 20px;
+  background: #ff4c4c;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: transform 0.3s;
+}
+
+.reset-button:hover {
+  background: #ff6666;
+  transform: scale(1.05);
 }
 
 .content-search {
   width: 100%;
+  margin-top: 20px;
+  background: #111;
+  padding: 20px;
+  border-radius: 10px;
 }
+
 </style>
+

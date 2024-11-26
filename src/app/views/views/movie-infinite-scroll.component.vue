@@ -223,6 +223,90 @@ export default {
   margin-top: 30px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  width: 100%;
+  padding: 0 20px;
+  max-width: 1200px;
+}
+
+.movie-card {
+  background-color: #222;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5);
+}
+
+.movie-card img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.movie-title {
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: #333;
+}
+
+.wishlist-indicator {
+  font-size: 1.5rem;
+  color: #ffcc00;
+  text-align: center;
+  padding-bottom: 10px;
+}
+
+.loading-trigger {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.loading-indicator {
+  text-align: center;
+  margin-top: 20px;
+  color: #fff;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-movies-message {
+  text-align: center;
+  font-size: 18px;
+  color: red;
+  margin-top: 20px;
 }
 
 .top-button {
@@ -241,16 +325,11 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  transition: transform 0.3s, background-color 0.3s;
 }
 
-.loading-indicator {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.no-movies-message {
-  text-align: center;
-  font-size: 18px;
-  color: red;
+.top-button:hover {
+  transform: scale(1.1);
+  background-color: #b20710;
 }
 </style>
