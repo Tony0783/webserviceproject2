@@ -32,6 +32,11 @@
                 <label for="password">Password</label>
                 <span class="focus-effect"></span>
               </div>
+              <!-- Remember me 체크박스 -->
+              <div class="remember-me">
+                <input type="checkbox" id="remember-me" v-model="rememberMe" />
+                <label for="remember-me">Remember me</label>
+              </div>
               <button :disabled="!isLoginFormValid">Login</button>
             </form>
             <a href="javascript:void(0)" class="account-check" @click="toggleCard">
@@ -73,6 +78,11 @@
                 <label for="confirm-password">Confirm Password</label>
                 <span class="focus-effect"></span>
               </div>
+              <!-- 약관 동의 체크박스 -->
+              <div class="terms-conditions">
+                <input type="checkbox" id="terms" v-model="termsAccepted" />
+                <label for="terms">I agree to the terms and conditions</label>
+              </div>
               <button :disabled="!isRegisterFormValid">Register</button>
             </form>
             <a href="javascript:void(0)" id="gotologin" class="account-check" @click="toggleCard">
@@ -90,7 +100,7 @@
   </div>
 </template>
 <script>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from '../../store/auth'; // auth store import
 import AuthService from "../../util/auth/auth.service";
@@ -106,6 +116,8 @@ export default {
     const registerEmail = ref("");
     const registerPassword = ref("");
     const confirmPassword = ref("");
+    const rememberMe = ref(false); // Remember me 상태
+    const termsAccepted = ref(false); // 약관 동의 상태
 
     const isEmailFocused = ref(false);
     const isPasswordFocused = ref(false);
@@ -116,7 +128,8 @@ export default {
         registerEmail.value &&
         registerPassword.value &&
         confirmPassword.value &&
-        registerPassword.value === confirmPassword.value
+        registerPassword.value === confirmPassword.value &&
+        termsAccepted.value // 약관 동의 확인
       );
     });
 
@@ -125,6 +138,11 @@ export default {
       try {
         const response = await AuthService.tryLogin(email.value, password.value);
         if (response) {
+          if (rememberMe.value) {
+            localStorage.setItem('savedEmail', email.value);
+          } else {
+            localStorage.removeItem('savedEmail');
+          }
           authStore.login(password.value); // Pinia store를 사용해 로그인 상태 변경
           alert("로그인 성공!");
           router.push("/main");
@@ -174,6 +192,15 @@ export default {
       if (inputName === "password") isPasswordFocused.value = false;
     };
 
+    // 로컬 스토리지에서 이메일 가져오기 (Remember me 기능)
+    onMounted(() => {
+      const savedEmail = localStorage.getItem('savedEmail');
+      if (savedEmail) {
+        email.value = savedEmail;
+        rememberMe.value = true;
+      }
+    });
+
     return {
       isLoginVisible,
       email,
@@ -181,6 +208,8 @@ export default {
       registerEmail,
       registerPassword,
       confirmPassword,
+      rememberMe,
+      termsAccepted,
       isEmailFocused,
       isPasswordFocused,
       isLoginFormValid,
@@ -195,7 +224,6 @@ export default {
     };
   },
 };
-
 </script>
 
 <style scoped>
@@ -615,6 +643,25 @@ button:hover {
     top:calc(5svh + 90px) !important;
     z-index:1;
   }
+}
+.remember-me {
+  margin-top: 10px;
+  text-align: left;
+  color: #fff;
+}
+
+.terms-conditions {
+  margin-top: 20px;
+  text-align: left;
+  color: #fff;
+}
+
+.terms-conditions input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.terms-conditions label {
+  font-weight: normal;
 }
 
 </style>
