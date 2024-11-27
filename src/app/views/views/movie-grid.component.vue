@@ -1,174 +1,115 @@
 <template>
-  <div class="movie-grid" ref="gridContainer">
-    <div :class="['grid-container', currentView]">
+  <div class="movie-table-view">
+    <div class="movie-grid">
       <div
-        v-for="(movieGroup, index) in visibleMovieGroups"
-        :key="index"
-        :class="['movie-row', { full: movieGroup.length === rowSize }]"
+        v-for="movie in paginatedMovies"
+        :key="movie.id"
+        class="movie-card"
+        @click="handleToggleWishlist(movie)"
       >
-        <div
-          v-for="movie in movieGroup"
-          :key="movie.id"
-          class="movie-card"
-          @mouseup="handleToggleWishlist(movie)"
-        >
-          <img
-            v-if="movie.poster_path"
-            :src="getImageUrl(movie.poster_path)"
-            :alt="movie.title"
-          />
-          <div v-else class="placeholder">이미지 없음</div>
-          <div class="movie-title">{{ movie.title }}</div>
-          <div
-            v-if="checkIsInWishlist(movie.id)"
-            class="wishlist-indicator"
-          >👍</div>
-        </div>
+        <img :src="getImageUrl(movie.poster_path)" :alt="movie.title" />
+        <div class="movie-title">{{ movie.title }}</div>
+        <!-- 좋아요 표시 아이콘 추가 및 상태에 따른 렌더링 -->
+        <div v-if="checkIsInWishlist(movie.id)" class="wishlist-indicator">👍</div>
       </div>
     </div>
-    <div class="pagination" v-if="totalPages > 1">
-      <button @click="prevPage" :disabled="currentPage === 1">&lt; 이전</button>
-      <span>{{ currentPage }} / {{ totalPages }}</span>
-      <button @click="nextPage" :disabled="currentPage === totalPages">다음 &gt;</button>
+    <div class="pagination">
+      <button @click="prevPage" :disabled="currentPage === 1">이전</button>
+      <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages">다음</button>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import { toggleWishlist, isInWishlist } from "../../util/movie/wishlist.js";
+import { toggleWishlist, isInWishlist } from "../../util/movie/wishlist.js"; // 위시리스트 관련 유틸리티 불러오기
 
 export default {
-  name: "MovieGrid",
-  props: {
-    fetchUrl: {
-      type: String,
-      required: true,
-    },
-    apiKey: {
-      type: String,
-      required: true, // API 키를 반드시 부모 컴포넌트에서 전달받도록 설정
-    },
-  },
+  props: ["fetchUrl", "apiKey"],
   setup(props) {
-    const movies = ref([]);
     const currentPage = ref(1);
-    const rowSize = ref(4);
-    const moviesPerPage = ref(20);
-    const currentView = ref("grid");
-    const gridContainer = ref(null);
-    const isMobile = ref(window.innerWidth <= 768); // 모바일 여부 확인 변수
+    const totalPages = ref(1);
+    const movies = ref([]);
 
-    const fetchMovies = async () => {
-      if (!props.apiKey) {
-        alert("API Key가 설정되지 않았습니다. 설정을 확인해주세요.");
-        console.error("API Key is not defined.");
-        return;
-      }
-
+    const fetchMovies = async (page = 1) => {
       try {
         const response = await axios.get(props.fetchUrl, {
           params: {
-            api_key: props.apiKey,
-            language: "ko-KR",
-            page: currentPage.value,
+            page,
           },
         });
         movies.value = response.data.results;
+        totalPages.value = response.data.total_pages;
       } catch (error) {
         console.error("Error fetching movies:", error);
-        alert("영화를 가져오는 중 오류가 발생했습니다. API Key와 URL을 확인하세요.");
       }
     };
 
-    const getImageUrl = (path) => `https://image.tmdb.org/t/p/w300${path}`;
-    const visibleMovieGroups = computed(() => {
-      const startIndex = (currentPage.value - 1) * moviesPerPage.value;
-      const endIndex = startIndex + moviesPerPage.value;
-      const paginatedMovies = movies.value.slice(startIndex, endIndex);
-
-      return paginatedMovies.reduce((resultArray, item, index) => {
-        const groupIndex = Math.floor(index / rowSize.value);
-        if (!resultArray[groupIndex]) resultArray[groupIndex] = [];
-        resultArray[groupIndex].push(item);
-        return resultArray;
-      }, []);
-    });
-
-    const totalPages = computed(() =>
-      Math.ceil(movies.value.length / moviesPerPage.value)
-    );
+    const paginatedMovies = computed(() => movies.value);
 
     const nextPage = () => {
       if (currentPage.value < totalPages.value) {
         currentPage.value++;
-        fetchMovies();
+        fetchMovies(currentPage.value);
       }
     };
 
     const prevPage = () => {
       if (currentPage.value > 1) {
         currentPage.value--;
-        fetchMovies();
+        fetchMovies(currentPage.value);
       }
     };
 
-    const handleToggleWishlist = (movie) => toggleWishlist(movie);
+    // 영화가 위시리스트에 있는지 여부를 확인하는 함수
     const checkIsInWishlist = (movieId) => isInWishlist(movieId);
 
-    const handleResize = () => {
-      isMobile.value = window.innerWidth <= 768; // 모바일 여부 업데이트
+    // 영화 위시리스트에 추가 또는 삭제하는 함수
+    const handleToggleWishlist = (movie) => {
+      toggleWishlist(movie);
     };
 
-    onMounted(async () => {
-      await fetchMovies();
-      window.addEventListener("resize", handleResize);
-    });
-    onUnmounted(() => {
-      window.removeEventListener("resize", handleResize);
+    onMounted(() => {
+      fetchMovies(currentPage.value);
     });
 
     return {
-      movies,
+      paginatedMovies,
       currentPage,
-      rowSize,
-      moviesPerPage,
-      currentView,
-      gridContainer,
-      visibleMovieGroups,
       totalPages,
       nextPage,
       prevPage,
-      getImageUrl,
-      handleToggleWishlist,
+      getImageUrl: (path) => {
+        return path ? `https://image.tmdb.org/t/p/w300${path}` : "/assets/default-movie-poster.jpg";
+      },
       checkIsInWishlist,
-      isMobile, // 반환하여 UI 로직에서도 사용할 수 있도록 함
+      handleToggleWishlist,
     };
   },
 };
 </script>
 
 <style scoped>
-.movie-grid {
-  width: 100%;
-  margin-top: 30px;
+.movie-table-view {
+  overflow: hidden;
+  padding: 20px;
 }
 
-.movie-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .movie-card {
-  width: 200px;
-  margin: 10px;
+  background: #222;
+  padding: 15px;
+  border-radius: 10px;
   text-align: center;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer; /* 클릭 가능하도록 커서 추가 */
   transition: transform 0.2s ease;
 }
 
@@ -176,46 +117,42 @@ export default {
   transform: scale(1.05);
 }
 
+.movie-card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
 .movie-title {
-  margin-top: 10px;
-  font-size: 14px;
+  color: white;
   font-weight: bold;
 }
 
 .wishlist-indicator {
   font-size: 20px;
   color: #f39c12;
+  margin-top: 5px;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
+  align-items: center;
   margin-top: 20px;
 }
 
 .pagination button {
-  margin: 0 5px;
-  padding: 8px 15px;
-  background-color: #2069ff;
+  background-color: #333;
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 10px 15px;
+  margin: 0 10px;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .pagination button:disabled {
-  background-color: #bbb;
+  background-color: #555;
   cursor: not-allowed;
-}
-
-.placeholder {
-  width: 100%;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #eaeaea;
-  color: #555;
-  font-size: 16px;
 }
 </style>
